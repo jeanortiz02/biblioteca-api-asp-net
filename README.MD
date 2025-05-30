@@ -33,6 +33,7 @@ A RESTful API for managing a library system, built with .NET.
 
 4. Apply database migrations:
     ```bash
+    dotnet ef migrations add TablaAutores
     dotnet ef database update
     ```
 

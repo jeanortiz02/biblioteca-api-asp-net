@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BibliotecaAPI.Entidades;
 
-public class Autor
+public class Libro
 {
     public int Id { get; set; }
     [Required]
-    public required string Nombre { get; set; }
-    public List<Libro> Libros { get; set; } = new List<Libro>();
+    public required string Titulo { get; set; }
+    public int AutorId { get; set; }
+    public Autor? Autor { get; set; }
 }

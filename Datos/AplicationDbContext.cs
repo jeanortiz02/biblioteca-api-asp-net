@@ -14,5 +14,6 @@ public class AplicationDbContext : DbContext
     // Crea una tabla en la base de datos
     // que se llamará Autores y contendrá los datos de la entidad Autor
     public DbSet<Autor> Autores { get; set; }
+    public DbSet<Libro> Libros { get; set; }
 
 }

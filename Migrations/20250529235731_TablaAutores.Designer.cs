@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BibliotecaAPI.Migrations
 {
     [DbContext(typeof(AplicationDbContext))]
-    [Migration("20250527235403_TablaAutores")]
+    [Migration("20250529235731_TablaAutores")]
     partial class TablaAutores
     {
         /// <inheritdoc />

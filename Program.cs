@@ -1,10 +1,13 @@
+using System.Text.Json.Serialization;
 using BibliotecaAPI.Datos;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Area services
-builder.Services.AddControllers(); // Habilita el uso de controladores
+builder.Services.AddControllers().AddJsonOptions(opciones =>
+    opciones.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles
+); // Habilita el uso de controladores
 builder.Services.AddDbContext<AplicationDbContext>(optiones =>
     optiones.UseSqlServer("name=DefaultConnection"));
 
