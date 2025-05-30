@@ -33,7 +33,7 @@ public class AutoresController : ControllerBase
     // }
 
     [HttpGet("{id:int}")] // api/autores/id
-    public async Task<ActionResult<Autor>> Get(int id)
+    public async Task<ActionResult<Autor>> Get([FromRoute] int id, [FromQuery] bool incluirLibros)
     {
         var autor = await context.Autores
                         // .Include( x => x.Libros)
@@ -59,7 +59,7 @@ public class AutoresController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post(Autor autor)
+    public async Task<ActionResult> Post([FromBody] Autor autor)
     {
         context.Add(autor);
         await context.SaveChangesAsync();

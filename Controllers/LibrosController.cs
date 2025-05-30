@@ -49,7 +49,8 @@ public class LibrosController : ControllerBase
 
         if (!existeAutor)
         {
-            return BadRequest($"El autor del libro {libro.AutorId} no existe");
+            ModelState.AddModelError(nameof(libro.AutorId), $"El autor del libro {libro.AutorId} no existe");
+            return ValidationProblem();
         }
 
         context.Add(libro);
