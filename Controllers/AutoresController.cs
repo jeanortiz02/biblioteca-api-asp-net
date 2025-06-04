@@ -1,5 +1,7 @@
 using System;
+using AutoMapper;
 using BibliotecaAPI.Datos;
+using BibliotecaAPI.DTOs;
 using BibliotecaAPI.Entidades;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,68 +14,58 @@ namespace BibliotecaAPI.Controllers;
 public class AutoresController : ControllerBase
 {
     private readonly AplicationDbContext context;
+    private readonly IMapper mapper;
 
-    public AutoresController(AplicationDbContext context)
+    public AutoresController(AplicationDbContext context, IMapper mapper)
     {
         this.context = context;
+        this.mapper = mapper;
     }
 
 
     // [HttpGet("/listado-de-autores")] // Ruta personalizada independiente
     [HttpGet]
-    public async Task<IEnumerable<Autor>> Get()
+    public async Task<IEnumerable<AutoresDTO>> Get()
     {
-        return await context.Autores.ToListAsync();
+        var autores = await context.Autores.ToListAsync();
+        var autoresDto = mapper.Map<IEnumerable<AutoresDTO>>(autores); // <IEnumerable<AutoresDTO>>
+        
+        return autoresDto;
     }
 
-    // [HttpGet("primero")] // api/autores/primero
-    // public async Task<ActionResult<Autor>> GetFirstAutor()
-    // {
-    //     return await context.Autores.FirstAsync();
-    // }
-
-    [HttpGet("{id:int}")] // api/autores/id
-    public async Task<ActionResult<Autor>> Get([FromRoute] int id, [FromQuery] bool incluirLibros)
+    [HttpGet("{id:int}", Name = "ObtenerAutor")] // api/autores/id
+    public async Task<ActionResult<AutoresDTO>> Get( int id)
     {
         var autor = await context.Autores
-                        // .Include( x => x.Libros)
+                        .Include( x => x.Libros)
                         .FirstOrDefaultAsync(x => x.Id == id);
 
         if (autor is null)
         {
             return NotFound();
         }
-        return autor;
-    }
-    [HttpGet("{nombre:alpha}")]
-    public async Task<IEnumerable<Autor>> Get(string nombre)
-    {
-        return await context.Autores.Where(x => x.Nombre.Contains(nombre)).ToListAsync();
+
+        var autorDto = mapper.Map<AutoresDTO>(autor);
+        return autorDto;
     }
 
     // Dos parametros en ruta
-    [HttpGet("{parametro1}/{parametro2}")] // api/autores/primero/segundo
-    public ActionResult Get(string parametro1, string parametro2)
-    {
-        return Ok(new { parametro2, parametro1 });
-    }
-
+    
     [HttpPost]
-    public async Task<ActionResult> Post([FromBody] Autor autor)
+    public async Task<ActionResult> Post( AutorCreacionDTO autorCreacionDTO)
     {
+        var autor = mapper.Map<Autor>(autorCreacionDTO);
         context.Add(autor);
         await context.SaveChangesAsync();
-        return Ok();
+        var autorDto = mapper.Map<AutoresDTO>(autor);
+        return CreatedAtRoute("ObtenerAutor", new { id = autor.Id }, autorDto);
     }
 
     [HttpPut("{id:int}")] // api/autores/id 
-    public async Task<ActionResult> Put(int id, Autor autor)
+    public async Task<ActionResult> Put(int id, AutorCreacionDTO autorCreacionDTO)
     {
-        if (id != autor.Id)
-        {
-            return BadRequest("Los Ids deben coincidir");
-        }
-
+        var autor = mapper.Map<Autor>(autorCreacionDTO);
+        autor.Id = id;
         context.Update(autor);
         await context.SaveChangesAsync();
         return Ok();
