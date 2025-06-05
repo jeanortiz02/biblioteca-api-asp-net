@@ -9,9 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAutoMapper(typeof(Program)); // Configurar automapper
 // Probando los diferentes tipos de servicios
 
-builder.Services.AddControllers().AddJsonOptions(opciones =>
-    opciones.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles
-); // Habilita el uso de controladores
+builder.Services.AddControllers().AddNewtonsoftJson(); // Habilita el uso de controladores
 builder.Services.AddDbContext<AplicationDbContext>(optiones =>
     optiones.UseSqlServer("name=DefaultConnection"));
 

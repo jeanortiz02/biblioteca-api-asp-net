@@ -3,6 +3,7 @@ using AutoMapper;
 using BibliotecaAPI.Datos;
 using BibliotecaAPI.DTOs;
 using BibliotecaAPI.Entidades;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -10,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 namespace BibliotecaAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/autores")]
 public class AutoresController : ControllerBase
 {
     private readonly AplicationDbContext context;
@@ -34,7 +35,7 @@ public class AutoresController : ControllerBase
     }
 
     [HttpGet("{id:int}", Name = "ObtenerAutor")] // api/autores/id
-    public async Task<ActionResult<AutoresDTO>> Get( int id)
+    public async Task<ActionResult<AutorConLibrosDTO>> Get( int id)
     {
         var autor = await context.Autores
                         .Include( x => x.Libros)
@@ -45,7 +46,7 @@ public class AutoresController : ControllerBase
             return NotFound();
         }
 
-        var autorDto = mapper.Map<AutoresDTO>(autor);
+        var autorDto = mapper.Map<AutorConLibrosDTO>(autor);
         return autorDto;
     }
 
@@ -66,9 +67,46 @@ public class AutoresController : ControllerBase
     {
         var autor = mapper.Map<Autor>(autorCreacionDTO);
         autor.Id = id;
+
+        var existeAutor = await context.Autores.AnyAsync(x => x.Id == autor.Id);
+        
+        if (!existeAutor)
+        {
+            return BadRequest($"El autor del libro {autor.Id} no existe");
+        }
         context.Update(autor);
         await context.SaveChangesAsync();
-        return Ok();
+        return NoContent();
+    }
+
+    [HttpPatch("{id:int}")]
+    public async Task<ActionResult> Patch(int id, JsonPatchDocument<AutorPatchDTO> patchDoc)
+    {
+        if (patchDoc is null)
+        {
+            return BadRequest();
+        }
+        var autorDb = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
+
+        if (autorDb is null)
+        {
+            return NotFound();
+        }
+
+        var autorToPatch = mapper.Map<AutorPatchDTO>(autorDb);
+        patchDoc.ApplyTo(autorToPatch, ModelState);
+
+        var isValid = TryValidateModel(autorToPatch);
+
+        if (!isValid)
+        {
+            return ValidationProblem();
+        }
+
+
+        mapper.Map(autorToPatch, autorDb); // Aplica los cambios
+        await context.SaveChangesAsync();
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
@@ -81,7 +119,7 @@ public class AutoresController : ControllerBase
             return NotFound();
         }
 
-        return Ok();
+        return NoContent();
     }
 
 }

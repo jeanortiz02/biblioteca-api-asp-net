@@ -4,6 +4,7 @@ using BibliotecaAPI.Datos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BibliotecaAPI.Migrations
 {
     [DbContext(typeof(AplicationDbContext))]
-    partial class AplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250605172057_TablaComentarios")]
+    partial class TablaComentarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,24 +24,6 @@ namespace BibliotecaAPI.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("BibliotecaAPI.DTOs.AutorLibro", b =>
-                {
-                    b.Property<int>("AutorId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LibroId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Orden")
-                        .HasColumnType("int");
-
-                    b.HasKey("AutorId", "LibroId");
-
-                    b.HasIndex("LibroId");
-
-                    b.ToTable("AutoresLibros");
-                });
 
             modelBuilder.Entity("BibliotecaAPI.Entidades.Autor", b =>
                 {
@@ -98,6 +83,9 @@ namespace BibliotecaAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AutorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -105,26 +93,9 @@ namespace BibliotecaAPI.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AutorId");
+
                     b.ToTable("Libros");
-                });
-
-            modelBuilder.Entity("BibliotecaAPI.DTOs.AutorLibro", b =>
-                {
-                    b.HasOne("BibliotecaAPI.Entidades.Autor", "Autor")
-                        .WithMany("Libros")
-                        .HasForeignKey("AutorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BibliotecaAPI.Entidades.Libro", "Libro")
-                        .WithMany("Autores")
-                        .HasForeignKey("LibroId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Autor");
-
-                    b.Navigation("Libro");
                 });
 
             modelBuilder.Entity("BibliotecaAPI.Entidades.Comentario", b =>
@@ -138,6 +109,17 @@ namespace BibliotecaAPI.Migrations
                     b.Navigation("Libro");
                 });
 
+            modelBuilder.Entity("BibliotecaAPI.Entidades.Libro", b =>
+                {
+                    b.HasOne("BibliotecaAPI.Entidades.Autor", "Autor")
+                        .WithMany("Libros")
+                        .HasForeignKey("AutorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Autor");
+                });
+
             modelBuilder.Entity("BibliotecaAPI.Entidades.Autor", b =>
                 {
                     b.Navigation("Libros");
@@ -145,8 +127,6 @@ namespace BibliotecaAPI.Migrations
 
             modelBuilder.Entity("BibliotecaAPI.Entidades.Libro", b =>
                 {
-                    b.Navigation("Autores");
-
                     b.Navigation("Comentarios");
                 });
 #pragma warning restore 612, 618

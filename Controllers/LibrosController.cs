@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using AutoMapper;
 using BibliotecaAPI.Datos;
+using BibliotecaAPI.DTOs;
 using BibliotecaAPI.Entidades;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,28 +11,32 @@ namespace BibliotecaAPI.Controllers;
 
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/libros")]
 public class LibrosController : ControllerBase
 {
     private readonly AplicationDbContext context;
+    private readonly IMapper mapper;
 
-    public LibrosController(AplicationDbContext context)
+    public LibrosController(AplicationDbContext context, IMapper mapper)
     {
         this.context = context;
+        this.mapper = mapper;
     }
 
 
     [HttpGet]
-    public async Task<IEnumerable<Libro>> Get()
+    public async Task<IEnumerable<LibroDTO>> Get()
     {
-        return await context.Libros.ToListAsync();
+        var libros = await context.Libros.ToListAsync();
+        var librosDTOs = mapper.Map<IEnumerable<LibroDTO>>(libros);
+        return librosDTOs;
     }
 
     [HttpGet("{id:int}", Name = "ObtenerLibro")]
-    public async Task<ActionResult<Libro>> Get(int id)
+    public async Task<ActionResult<LibroConAutorDTO>> Get(int id)
     {
         var libro = await context.Libros
-                    .Include( x => x.Autor )
+                    .Include( x => x.Autores )
                     .FirstOrDefaultAsync(x => x.Id == id);
 
         if (libro is null)
@@ -38,45 +44,49 @@ public class LibrosController : ControllerBase
             return BadRequest("Libro no registrado");
         }
 
-        return libro;
+        var libroDTO = mapper.Map<LibroConAutorDTO>(libro);
+
+        return libroDTO;
     }
 
-    [HttpPost]
-    public async Task<ActionResult> Post(Libro libro)
-    {
+    // [HttpPost]
+    // public async Task<ActionResult> Post(LibroCreactionDTO libroCreactionDTO)
+    // {
+    //     var libro = mapper.Map<Libro>(libroCreactionDTO);
 
-        var existeAutor = await context.Autores.AnyAsync(x => x.Id == libro.AutorId);
+    //     var existeAutor = await context.Autores.AnyAsync(x => x.Id == libro.AutorId);
 
-        if (!existeAutor)
-        {
-            ModelState.AddModelError(nameof(libro.AutorId), $"El autor del libro {libro.AutorId} no existe");
-            return ValidationProblem();
-        }
+    //     if (!existeAutor)
+    //     {
+    //         ModelState.AddModelError(nameof(libro.AutorId), $"El autor del libro {libro.AutorId} no existe");
+    //         return ValidationProblem();
+    //     }
 
-        context.Add(libro);
-        await context.SaveChangesAsync();
-        return CreatedAtRoute("ObtenerLibro", new { id = libro.Id }, libro);
-    }
+    //     context.Add(libro);
+    //     await context.SaveChangesAsync();
 
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult> Put(int id, Libro libro)
-    {
-        if (id != libro.Id)
-        {
-            return BadRequest("Los Ids no coinciden");
-        }
+    //     var libroDTO = mapper.Map<LibroDTO>(libro);
 
-        var existeAutor = await context.Autores.AnyAsync(x => x.Id == libro.AutorId);
+    //     return CreatedAtRoute("ObtenerLibro", new { id = libro.Id }, libroDTO);
+    // }
 
-        if (!existeAutor)
-        {
-            return BadRequest($"El autor del libro {libro.AutorId} no existe");
-        }
+    // [HttpPut("{id:int}")]
+    // public async Task<ActionResult> Put(int id, LibroCreactionDTO libroCreactionDTO)
+    // {
+    //     var libro = mapper.Map<Libro>(libroCreactionDTO);
+    //     libro.Id = id;
 
-        context.Update(libro);
-        await context.SaveChangesAsync();
-        return Ok();
-    }
+    //     var existeAutor = await context.Autores.AnyAsync(x => x.Id == libro.AutorId);
+
+    //     if (!existeAutor)
+    //     {
+    //         return BadRequest($"El autor del libro {libro.AutorId} no existe");
+    //     }
+
+    //     context.Update(libro);
+    //     await context.SaveChangesAsync();
+    //     return NoContent();
+    // }
 
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete(int id)
@@ -88,6 +98,6 @@ public class LibrosController : ControllerBase
             return NotFound();
         }
 
-        return Ok();
+        return NoContent();
     }
 }
