@@ -19,13 +19,33 @@ public class AutomapperProfile : Profile
         CreateMap<AutorCreacionDTO, Autor>();
         CreateMap<Autor, AutorPatchDTO>().ReverseMap(); //Patch>
 
+        CreateMap<AutorLibro, LibroDTO>()
+            .ForMember(dto => dto.Id, config => config.MapFrom(ent => ent.LibroId))
+            .ForMember(dto => dto.Titulo, config => config.MapFrom(ent => ent.Libro!.Titulo));
 
+
+        // Here
+        // CreateMap<Autor, AutorConLibrosDTO>()
+        //     .ForMember(
+        //         dest => dest.Libros,
+        //         opt => opt.MapFrom(src => src.Libros.Select(al => al.Libro))
+        //     );
         CreateMap<Libro, LibroDTO>();
-        CreateMap<LibroCreactionDTO, Libro>();
+        CreateMap<LibroCreactionDTO, Libro>()
+            .ForMember(ent => ent.Autores,
+                config => config.MapFrom(dto => dto.AutoresId.Select(id => new AutorLibro { AutorId = id }))
+            );
 
-        // CreateMap<Libro, LibroConAutorDTO>()
-        //     .ForMember(dest => dest.AutorNombre,
-        //     opt => opt.MapFrom(src => MapearNombreCompleto(src.Autor!)));
+        CreateMap<Libro, LibroConAutoresDTO>();
+
+        CreateMap<AutorLibro, AutoresDTO>()
+            .ForMember(dto => dto.Id, config => config.MapFrom(ent => ent.AutorId))
+            .ForMember(dto => dto.NombreCompleto, config => config.MapFrom(ent => MapearNombreCompleto(ent.Autor!)));
+
+        CreateMap<LibroCreactionDTO, AutorLibro>()
+            .ForMember(ent => ent.Libro,
+                config => config.MapFrom(dto => new Libro { Titulo = dto.Titulo }));
+            
 
 
         CreateMap<ComentarioCreationDTO, ComentarioDTO>();

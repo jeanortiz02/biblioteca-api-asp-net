@@ -38,7 +38,8 @@ public class AutoresController : ControllerBase
     public async Task<ActionResult<AutorConLibrosDTO>> Get( int id)
     {
         var autor = await context.Autores
-                        .Include( x => x.Libros)
+                        .Include(x => x.Libros)
+                        .ThenInclude(x => x.Libro)
                         .FirstOrDefaultAsync(x => x.Id == id);
 
         if (autor is null)

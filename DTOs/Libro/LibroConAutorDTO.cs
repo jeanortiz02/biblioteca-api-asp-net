@@ -2,9 +2,8 @@ using System;
 
 namespace BibliotecaAPI.DTOs;
 
-public class LibroConAutorDTO : LibroDTO
+public class LibroConAutoresDTO : LibroDTO
 {
-    public int AutorId { get; set; }
-    public required string AutorNombre { get; set; }
+    public List<AutoresDTO> Autores { get; set; } = [];
 
 }
