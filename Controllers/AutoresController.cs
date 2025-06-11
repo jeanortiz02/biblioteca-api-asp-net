@@ -1,17 +1,17 @@
-using System;
 using AutoMapper;
 using BibliotecaAPI.Datos;
 using BibliotecaAPI.DTOs;
 using BibliotecaAPI.Entidades;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BibliotecaAPI.Controllers;
 
 [ApiController]
 [Route("api/autores")]
+[Authorize]
 public class AutoresController : ControllerBase
 {
     private readonly AplicationDbContext context;
@@ -26,11 +26,12 @@ public class AutoresController : ControllerBase
 
     // [HttpGet("/listado-de-autores")] // Ruta personalizada independiente
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IEnumerable<AutoresDTO>> Get()
     {
         var autores = await context.Autores.ToListAsync();
         var autoresDto = mapper.Map<IEnumerable<AutoresDTO>>(autores); // <IEnumerable<AutoresDTO>>
-        
+
         return autoresDto;
     }
 
