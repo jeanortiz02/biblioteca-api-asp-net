@@ -11,7 +11,7 @@ namespace BibliotecaAPI.Controllers;
 
 [ApiController]
 [Route("api/autores-collection")]
-[Authorize]
+[Authorize(Policy = "esadmin")]
 public class AutoresCollectionController : ControllerBase
 {
     private readonly AplicationDbContext context;

@@ -50,7 +50,8 @@ public class AutomapperProfile : Profile
 
         CreateMap<ComentarioCreationDTO, ComentarioDTO>();
         CreateMap<ComentarioCreationDTO, Comentario>();
-        CreateMap<Comentario, ComentarioDTO>();
+        CreateMap<Comentario, ComentarioDTO>()
+            .ForMember(dto => dto.UsuarioEmail, confg => confg.MapFrom(ent => ent.Usuario!.Email));
 
         CreateMap<ComentarioPatchDTO, Comentario>().ReverseMap();
     }

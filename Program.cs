@@ -2,6 +2,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 using BibliotecaAPI;
 using BibliotecaAPI.Datos;
+using BibliotecaAPI.Entidades;
+using BibliotecaAPI.Servicios;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,12 +19,13 @@ builder.Services.AddControllers().AddNewtonsoftJson(); // Habilita el uso de con
 builder.Services.AddDbContext<AplicationDbContext>(optiones =>
     optiones.UseSqlServer("name=DefaultConnection"));
 
-builder.Services.AddIdentityCore<IdentityUser>()
+builder.Services.AddIdentityCore<Usuario>()
     .AddEntityFrameworkStores<AplicationDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<UserManager<IdentityUser>>();
-builder.Services.AddScoped<SignInManager<IdentityUser>>();
+builder.Services.AddScoped<UserManager<Usuario>>();
+builder.Services.AddScoped<SignInManager<Usuario>>();
+builder.Services.AddTransient<IServiciosUsuarios, ServiciosUsuarios>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication().AddJwtBearer(options =>
@@ -37,6 +40,12 @@ builder.Services.AddAuthentication().AddJwtBearer(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["llavejwt"]!)),
         ClockSkew = TimeSpan.Zero
     };
+});
+
+// Configuration of the policy
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("esadmin", policy => policy.RequireClaim("esadmin"));
 });
 
 var app = builder.Build();

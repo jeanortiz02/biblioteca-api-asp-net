@@ -1,6 +1,5 @@
 
 using System.ComponentModel.DataAnnotations;
-
 namespace BibliotecaAPI.Entidades;
 
 public class Comentario
@@ -11,4 +10,6 @@ public class Comentario
     public DateTime FechaPublicacion { get; set; }
     public int LibroId { get; set; }
     public Libro? Libro { get; set; }
+    public required string UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
 }

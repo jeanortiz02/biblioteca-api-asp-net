@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BibliotecaAPI.Datos;
 
-public class AplicationDbContext : IdentityDbContext
+public class AplicationDbContext : IdentityDbContext<Usuario>
 {
     public AplicationDbContext(DbContextOptions options) : base(options)
     {
