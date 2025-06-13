@@ -11,6 +11,21 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Area services
+
+var myAllowSpecificOrigins = builder.Configuration.GetSection("origenesPermitidos").Get<string[]>();
+
+builder.Services.AddCors(option =>
+{
+    option.AddDefaultPolicy( optionsCors =>
+    {
+        optionsCors.WithOrigins(myAllowSpecificOrigins!)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithExposedHeaders("mi-cabecera");
+    });
+});
+
+
 builder.Services.AddAutoMapper(typeof(Program)); // Configurar automapper
 // Probando los diferentes tipos de servicios
 
@@ -52,6 +67,13 @@ var app = builder.Build();
 
 // Area de middleware
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("mi-cabecera", "Mi cabecera personalizada");
+    await next();
+});
+
+app.UseCors(); // Habilitar cors
 app.MapControllers(); // Mapea los controladores a las rutas
 
 app.Run();

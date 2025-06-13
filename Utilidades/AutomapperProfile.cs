@@ -45,7 +45,7 @@ public class AutomapperProfile : Profile
         CreateMap<LibroCreactionDTO, AutorLibro>()
             .ForMember(ent => ent.Libro,
                 config => config.MapFrom(dto => new Libro { Titulo = dto.Titulo }));
-            
+
 
 
         CreateMap<ComentarioCreationDTO, ComentarioDTO>();
@@ -54,6 +54,9 @@ public class AutomapperProfile : Profile
             .ForMember(dto => dto.UsuarioEmail, confg => confg.MapFrom(ent => ent.Usuario!.Email));
 
         CreateMap<ComentarioPatchDTO, Comentario>().ReverseMap();
+        
+
+        CreateMap<Usuario, UsuarioDTO>();
     }
 
     private string MapearNombreCompleto(Autor autor)
