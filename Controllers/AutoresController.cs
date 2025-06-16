@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using AutoMapper;
 using BibliotecaAPI.Datos;
 using BibliotecaAPI.DTOs;
@@ -36,7 +37,12 @@ public class AutoresController : ControllerBase
     }
 
     [HttpGet("{id:int}", Name = "ObtenerAutor")] // api/autores/id
-    public async Task<ActionResult<AutorConLibrosDTO>> Get( int id)
+    [AllowAnonymous]
+    [EndpointSummary("Obtiene un autor por Id")]
+    [EndpointDescription("Obtiene un autor por Id. Incluye libros. Si el autor no existe devuelve un 404")]
+    [ProducesResponseType<AutorConLibrosDTO>(StatusCodes.Status200OK)]
+    [ProducesResponseType<AutorConLibrosDTO>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AutorConLibrosDTO>> Get([Description("Id del autor")] int id)
     {
         var autor = await context.Autores
                         .Include(x => x.Libros)

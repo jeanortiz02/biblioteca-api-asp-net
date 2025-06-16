@@ -27,6 +27,7 @@ namespace BibliotecaAPI.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<List<ComentarioDTO>>> Get(int libroId)
         {
 
