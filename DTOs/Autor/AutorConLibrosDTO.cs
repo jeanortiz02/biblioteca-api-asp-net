@@ -2,7 +2,7 @@
 
 namespace BibliotecaAPI.DTOs;
 
-public class AutorConLibrosDTO : AutoresDTO
+public class AutorConLibrosDTO : AutorDTO
 {
     public List<LibroDTO> Libros { get; set; } = [];
 }

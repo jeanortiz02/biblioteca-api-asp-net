@@ -1,6 +1,7 @@
 
 using AutoMapper;
 using BibliotecaAPI.DTOs;
+using BibliotecaAPI.DTOs.Autor;
 using BibliotecaAPI.Entidades;
 
 namespace BibliotecaAPI.Utilidades;
@@ -10,13 +11,16 @@ public class AutomapperProfile : Profile
 
     public AutomapperProfile()
     {
-        CreateMap<Autor, AutoresDTO>()
+        CreateMap<Autor, AutorDTO>()
             .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src => MapearNombreCompleto(src)));
 
         CreateMap<Autor, AutorConLibrosDTO>()
             .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(src => MapearNombreCompleto(src)));
 
         CreateMap<AutorCreacionDTO, Autor>();
+        CreateMap<AutorCreactionDTOConFoto, Autor>()
+            .ForMember(x => x.Foto, opt => opt.Ignore());
+            
         CreateMap<Autor, AutorPatchDTO>().ReverseMap(); //Patch>
 
         CreateMap<AutorLibro, LibroDTO>()
@@ -38,7 +42,7 @@ public class AutomapperProfile : Profile
 
         CreateMap<Libro, LibroConAutoresDTO>();
 
-        CreateMap<AutorLibro, AutoresDTO>()
+        CreateMap<AutorLibro, AutorDTO>()
             .ForMember(dto => dto.Id, config => config.MapFrom(ent => ent.AutorId))
             .ForMember(dto => dto.NombreCompleto, config => config.MapFrom(ent => MapearNombreCompleto(ent.Autor!)));
 

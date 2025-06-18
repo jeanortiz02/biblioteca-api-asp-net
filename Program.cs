@@ -2,9 +2,11 @@ using System.Text;
 using BibliotecaAPI.Datos;
 using BibliotecaAPI.Entidades;
 using BibliotecaAPI.Servicios;
+using BibliotecaAPI.Swagger;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +23,7 @@ builder.Services.AddCors(option =>
         optionsCors.WithOrigins(myAllowSpecificOrigins!)
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .WithExposedHeaders("mi-cabecera");
+            .WithExposedHeaders("cantidad-total-registros");
     });
 });
 
@@ -41,6 +43,7 @@ builder.Services.AddIdentityCore<Usuario>()
 builder.Services.AddScoped<UserManager<Usuario>>();
 builder.Services.AddScoped<SignInManager<Usuario>>();
 builder.Services.AddTransient<IServiciosUsuarios, ServiciosUsuarios>();
+builder.Services.AddTransient<IAlmacenadorArchivos , AlmacenadorArchivosAzure>();
 
 
 builder.Services.AddHttpContextAccessor();
@@ -68,17 +71,43 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddSwaggerGen( opciones =>
 {
-    opciones.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    opciones.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Biblioteca API",
         Description = "Este es un web API para trabajar con datos de autores y libros",
         Version = "v1",
-        License = new Microsoft.OpenApi.Models.OpenApiLicense
+        License = new OpenApiLicense
         {
             Name = "MIT",
             Url = new Uri("https://opensource.org/licenses/MIT")
         }
     });
+
+    opciones.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header
+    });
+
+    opciones.OperationFilter<FiltroAutorizacion>();
+
+    // opciones.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // {
+    //     {
+    //         new OpenApiSecurityScheme
+    //         {
+    //             Reference = new OpenApiReference
+    //             {
+    //                 Type = ReferenceType.SecurityScheme,
+    //                 Id = "Bearer"
+    //             }
+    //         },
+    //         new string[] {}
+    //     }
+    // });
 });
 
 var app = builder.Build();

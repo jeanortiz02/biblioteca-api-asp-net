@@ -61,7 +61,7 @@ public class AutoresCollectionController : ControllerBase
         var autores = mapper.Map<IEnumerable<Autor>>(autoresCreacionDTOs);
         context.AddRange(autores);
         await context.SaveChangesAsync();
-        var autoresDTO = mapper.Map<IEnumerable<AutoresDTO>>(autores);
+        var autoresDTO = mapper.Map<IEnumerable<AutorDTO>>(autores);
         var ids = autores.Select( x => x.Id);
         var idsString = string.Join(",", ids);
         return CreatedAtRoute("ObtenerAutoresPorIds", new { ids = idsString }, autoresDTO);
