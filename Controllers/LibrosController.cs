@@ -7,6 +7,7 @@ using BibliotecaAPI.Utilidades;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
 namespace BibliotecaAPI.Controllers;
@@ -19,18 +20,25 @@ public class LibrosController : ControllerBase
 {
     private readonly AplicationDbContext context;
     private readonly IMapper mapper;
-   
+    private readonly IOutputCacheStore outputCacheStore;
+    private const string cache = "libros-obtener";
 
-    public LibrosController(AplicationDbContext context, IMapper mapper)
+    public LibrosController(
+        AplicationDbContext context,
+        IMapper mapper,
+        IOutputCacheStore outputCacheStore
+
+        )
     {
         this.context = context;
         this.mapper = mapper;
-    
+        this.outputCacheStore = outputCacheStore;
     }
 
 
     [HttpGet]
     [AllowAnonymous]
+    [OutputCache]
     public async Task<IEnumerable<LibroDTO>> Get([FromQuery] PaginationDTO paginationDTO)
     {
         var queryable = context.Libros.AsQueryable();
@@ -39,13 +47,14 @@ public class LibrosController : ControllerBase
                             .OrderBy(x => x.Titulo)
                             .Paginar(paginationDTO)
                             .ToListAsync();
-                            
+
         var librosDTOs = mapper.Map<IEnumerable<LibroDTO>>(libros);
         return librosDTOs;
     }
 
     [HttpGet("{id:int}", Name = "ObtenerLibro")]
     [AllowAnonymous]
+    [OutputCache(Tags = [cache])]
     public async Task<ActionResult<LibroConAutoresDTO>> Get(int id)
     {
         var libro = await context.Libros
@@ -74,7 +83,7 @@ public class LibrosController : ControllerBase
 
         var autoresIdsExisten = await context.Autores
                                 .Where(x => libroCreactionDTO.AutoresId.Contains(x.Id))
-                                .Select( x => x.Id ).ToListAsync();
+                                .Select(x => x.Id).ToListAsync();
 
         if (libroCreactionDTO.AutoresId.Count != autoresIdsExisten.Count)
         {
@@ -89,6 +98,7 @@ public class LibrosController : ControllerBase
         AsignarOrdenAutores(libro);
         context.Add(libro);
         await context.SaveChangesAsync();
+        await outputCacheStore.EvictByTagAsync(cache, default);
 
         var libroDTO = mapper.Map<LibroDTO>(libro);
 
@@ -117,7 +127,7 @@ public class LibrosController : ControllerBase
 
         var autoresIdsExisten = await context.Autores
                                 .Where(x => libroCreactionDTO.AutoresId.Contains(x.Id))
-                                .Select( x => x.Id ).ToListAsync();
+                                .Select(x => x.Id).ToListAsync();
 
         if (libroCreactionDTO.AutoresId.Count != autoresIdsExisten.Count)
         {
@@ -139,8 +149,9 @@ public class LibrosController : ControllerBase
 
         libroDb = mapper.Map(libroCreactionDTO, libroDb);
         AsignarOrdenAutores(libroDb);
-        
+
         await context.SaveChangesAsync();
+        await outputCacheStore.EvictByTagAsync(cache, default);
         return NoContent();
     }
 
@@ -153,6 +164,7 @@ public class LibrosController : ControllerBase
         {
             return NotFound();
         }
+        await outputCacheStore.EvictByTagAsync(cache, default);
 
         return NoContent();
     }

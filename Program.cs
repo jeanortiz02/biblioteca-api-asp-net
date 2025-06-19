@@ -12,6 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Area services
 
+builder.Services.AddOutputCache(opciones =>
+{
+    opciones.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(15);
+}); // Habilita la cache
+
 builder.Services.AddDataProtection(); // Habilita la proteccion de datos
 
 var myAllowSpecificOrigins = builder.Configuration.GetSection("origenesPermitidos").Get<string[]>();
@@ -92,8 +97,6 @@ builder.Services.AddSwaggerGen( opciones =>
         In = ParameterLocation.Header
     });
 
-    opciones.OperationFilter<FiltroAutorizacion>();
-
     // opciones.AddSecurityRequirement(new OpenApiSecurityRequirement
     // {
     //     {
@@ -117,7 +120,10 @@ var app = builder.Build();
 app.UseSwagger(); // Servi documento de swagger
 app.UseSwaggerUI(); // Interfaz de usuario para el documento de swagger
 
+app.UseStaticFiles(); // Habilita el uso de archivos estaticos
+
 app.UseCors(); // Habilitar cors
+app.UseOutputCache(); // Habilita la cache
 app.MapControllers(); // Mapea los controladores a las rutas
 
 app.Run();

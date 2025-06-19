@@ -15,6 +15,7 @@ public class AplicationDbContext : IdentityDbContext<Usuario>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Comentario>().HasQueryFilter(x => !x.EstaBorrado);
     }
 
     // Crea una tabla en la base de datos
