@@ -3,6 +3,7 @@ using BibliotecaAPI.Datos;
 using BibliotecaAPI.Entidades;
 using BibliotecaAPI.Servicios;
 using BibliotecaAPI.Swagger;
+using BibliotecaAPI.Utilidades;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,10 +13,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Area services
 
-builder.Services.AddOutputCache(opciones =>
+// builder.Services.AddOutputCache(opciones =>
+// {
+//     opciones.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(15);
+// }); // Habilita la cache
+
+builder.Services.AddStackExchangeRedisOutputCache(optiones =>
 {
-    opciones.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(15);
-}); // Habilita la cache
+    optiones.Configuration = builder.Configuration.GetConnectionString("redis")!;
+});
+
 
 builder.Services.AddDataProtection(); // Habilita la proteccion de datos
 
@@ -48,7 +55,8 @@ builder.Services.AddIdentityCore<Usuario>()
 builder.Services.AddScoped<UserManager<Usuario>>();
 builder.Services.AddScoped<SignInManager<Usuario>>();
 builder.Services.AddTransient<IServiciosUsuarios, ServiciosUsuarios>();
-builder.Services.AddTransient<IAlmacenadorArchivos , AlmacenadorArchivosAzure>();
+builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosAzure>();
+builder.Services.AddScoped<MiFiltroDeAccion>();
 
 
 builder.Services.AddHttpContextAccessor();

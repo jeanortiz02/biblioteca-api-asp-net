@@ -47,7 +47,8 @@ public class AutoresController : ControllerBase
     // [HttpGet("/listado-de-autores")] // Ruta personalizada independiente
     [HttpGet]
     [AllowAnonymous]
-    [OutputCache( Tags = [cache] ) ]
+    [OutputCache(Tags = [cache])]
+    [ServiceFilter<MiFiltroDeAccion>]
     public async Task<IEnumerable<AutorDTO>> Get([FromQuery] PaginationDTO paginationDTO)
     {
         var queryable = context.Autores.AsQueryable();
