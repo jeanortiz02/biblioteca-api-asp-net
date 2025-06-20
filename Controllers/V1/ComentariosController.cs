@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
-namespace BibliotecaAPI.Controllers
+namespace BibliotecaAPI.Controllers.V1
 {
     [ApiController]
-    [Route("api/libros/{libroId:int}/comentarios")]
+    [Route("api/v1/libros/{libroId:int}/comentarios")]
     [Authorize]
     public class ComentariosController : ControllerBase
     {
@@ -58,7 +58,7 @@ namespace BibliotecaAPI.Controllers
             return mapper.Map<List<ComentarioDTO>>(comentarios);
         }
 
-        [HttpGet("{id}", Name = "obtenerComentario")]
+        [HttpGet("{id}", Name = "obtenerComentariov1")]
         [AllowAnonymous]
         [OutputCache(Tags = [cache])]
         public async Task<ActionResult<ComentarioDTO>> Get(Guid id)
@@ -103,7 +103,7 @@ namespace BibliotecaAPI.Controllers
             await outputCacheStore.EvictByTagAsync(cache, default);
 
             var comentarioDTO = mapper.Map<ComentarioDTO>(comentario);
-            return CreatedAtRoute("obtenerComentario", new { libroId, id = comentario.Id }, comentarioDTO);
+            return CreatedAtRoute("obtenerComentarioV1", new { libroId, id = comentario.Id }, comentarioDTO);
 
         }
 

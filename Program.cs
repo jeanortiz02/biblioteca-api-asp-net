@@ -2,8 +2,8 @@ using System.Text;
 using BibliotecaAPI.Datos;
 using BibliotecaAPI.Entidades;
 using BibliotecaAPI.Servicios;
-using BibliotecaAPI.Swagger;
 using BibliotecaAPI.Utilidades;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -43,7 +43,11 @@ builder.Services.AddCors(option =>
 builder.Services.AddAutoMapper(typeof(Program)); // Configurar automapper
 // Probando los diferentes tipos de servicios
 
-builder.Services.AddControllers().AddNewtonsoftJson(); // Habilita el uso de controladores
+builder.Services.AddControllers( opciones =>
+{
+    opciones.Filters.Add<FiltroTiempoEjecucion>(); // Filtro de tiempo de ejecucion
+    
+}).AddNewtonsoftJson(); // Habilita el uso de controladores
 
 builder.Services.AddDbContext<AplicationDbContext>(optiones =>
     optiones.UseSqlServer("name=DefaultConnection"));
@@ -57,6 +61,8 @@ builder.Services.AddScoped<SignInManager<Usuario>>();
 builder.Services.AddTransient<IServiciosUsuarios, ServiciosUsuarios>();
 builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosAzure>();
 builder.Services.AddScoped<MiFiltroDeAccion>();
+builder.Services.AddScoped<FiltroValidacionLibro>();
+builder.Services.AddScoped<BibliotecaAPI.Servicios.V1.IServicioAutores, BibliotecaAPI.Servicios.V1.ServicioAutores>();
 
 
 builder.Services.AddHttpContextAccessor();
@@ -124,6 +130,24 @@ builder.Services.AddSwaggerGen( opciones =>
 var app = builder.Build();
 
 // Area de middleware
+app.UseExceptionHandler(excepcionHandleApp => excepcionHandleApp.Run(async context =>
+{
+    var exceptionHandlerFuture = context.Features.Get<IExceptionHandlerFeature>();
+    var exception = exceptionHandlerFuture?.Error!;
+
+    var error = new Error()
+    {
+        Id = Guid.NewGuid(),
+        MensajeDeError = exception.Message,
+        StackTrace = exception.StackTrace,
+        Fecha = DateTime.UtcNow
+    };
+    var dbContext = context.RequestServices.GetRequiredService<AplicationDbContext>();
+    dbContext.Add(error);
+    await dbContext.SaveChangesAsync();
+    await Results.InternalServerError(new { tipo = "error", mensaje = "Ocurrio un error en el servidor", estatus = 500 }).ExecuteAsync(context);
+})); // Manejo de errores globales
+
 
 app.UseSwagger(); // Servi documento de swagger
 app.UseSwaggerUI(); // Interfaz de usuario para el documento de swagger

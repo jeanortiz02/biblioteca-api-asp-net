@@ -12,12 +12,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.OutputCaching;
+using BibliotecaAPI.Servicios.V1;
 
-namespace BibliotecaAPI.Controllers;
+namespace BibliotecaAPI.Controllers.V1;
 
 [ApiController]
-[Route("api/autores")]
+[Route("api/v1/autores")]
 [Authorize(Policy = "esadmin")]
+[FiltroAgregarCabeceras("controlador", "autores")]
 public class AutoresController : ControllerBase
 {
     private readonly AplicationDbContext context;
@@ -25,6 +27,7 @@ public class AutoresController : ControllerBase
     private readonly IAlmacenadorArchivos almacenadorArchivos;
     private readonly ILogger<AutoresController> logger;
     private readonly IOutputCacheStore outputCacheStore;
+    private readonly IServicioAutores servicioAutoresV1;
     private const string contenedor = "autores";
     private const string cache = "autores-obtener";
 
@@ -33,7 +36,8 @@ public class AutoresController : ControllerBase
         IMapper mapper,
         IAlmacenadorArchivos almacenadorArchivos,
         ILogger<AutoresController> logger,
-        IOutputCacheStore outputCacheStore
+        IOutputCacheStore outputCacheStore,
+        IServicioAutores servicioAutoresV1 
         )
     {
         this.context = context;
@@ -41,34 +45,28 @@ public class AutoresController : ControllerBase
         this.almacenadorArchivos = almacenadorArchivos;
         this.logger = logger;
         this.outputCacheStore = outputCacheStore;
+        this.servicioAutoresV1 = servicioAutoresV1;
     }
 
 
     // [HttpGet("/listado-de-autores")] // Ruta personalizada independiente
     [HttpGet]
     [AllowAnonymous]
-    [OutputCache(Tags = [cache])]
-    [ServiceFilter<MiFiltroDeAccion>]
+    // [OutputCache(Tags = [cache])]
+    [ServiceFilter<MiFiltroDeAccion>()]
+    [FiltroAgregarCabeceras("accion", "obtener-autores")]
     public async Task<IEnumerable<AutorDTO>> Get([FromQuery] PaginationDTO paginationDTO)
     {
-        var queryable = context.Autores.AsQueryable();
-        await HttpContext.InsertarParametrosPaginacionEnCabecera(queryable);
-        var autores = await queryable
-                                .OrderBy(x => x.Nombres)
-                                .Paginar(paginationDTO)
-                                .ToListAsync();
-        var autoresDto = mapper.Map<IEnumerable<AutorDTO>>(autores); // <IEnumerable<AutoresDTO>>
-
-        return autoresDto;
+        return await servicioAutoresV1.Get(paginationDTO);
     }
 
-    [HttpGet("{id:int}", Name = "ObtenerAutor")] // api/autores/id
+    [HttpGet("{id:int}", Name = "ObtenerAutorV1")] // api/autores/id
     [AllowAnonymous]
     [EndpointSummary("Obtiene un autor por Id")]
     [EndpointDescription("Obtiene un autor por Id. Incluye libros. Si el autor no existe devuelve un 404")]
     [ProducesResponseType<AutorConLibrosDTO>(StatusCodes.Status200OK)]
     [ProducesResponseType<AutorConLibrosDTO>(StatusCodes.Status404NotFound)]
-    [OutputCache]
+    // [OutputCache (Tags = [cache])]
     public async Task<ActionResult<AutorConLibrosDTO>> Get([Description("Id del autor")] int id)
     {
         var autor = await context.Autores
@@ -180,7 +178,7 @@ public class AutoresController : ControllerBase
         await context.SaveChangesAsync();
         await outputCacheStore.EvictByTagAsync(cache, default);
         var autorDto = mapper.Map<AutorDTO>(autor);
-        return CreatedAtRoute("ObtenerAutor", new { id = autor.Id }, autorDto);
+        return CreatedAtRoute("ObtenerAutorV1", new { id = autor.Id }, autorDto);
     }
     [HttpPost("con-foto")]
     public async Task<ActionResult> PostConFoto([FromForm] AutorCreactionDTOConFoto autorCreacionDTO)
@@ -198,7 +196,7 @@ public class AutoresController : ControllerBase
         await context.SaveChangesAsync();
         await outputCacheStore.EvictByTagAsync(cache, default);
         var autorDto = mapper.Map<AutorDTO>(autor);
-        return CreatedAtRoute("ObtenerAutor", new { id = autor.Id }, autorDto);
+        return CreatedAtRoute("ObtenerAutorV1", new { id = autor.Id }, autorDto);
     }
 
     [HttpPut("{id:int}")] // api/autores/id 
