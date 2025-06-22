@@ -50,7 +50,7 @@ public class AutoresController : ControllerBase
 
 
     // [HttpGet("/listado-de-autores")] // Ruta personalizada independiente
-    [HttpGet]
+    [HttpGet (Name = "ObtenerAutoresV1")] // api/autores
     [AllowAnonymous]
     // [OutputCache(Tags = [cache])]
     [ServiceFilter<MiFiltroDeAccion>()]
@@ -80,10 +80,40 @@ public class AutoresController : ControllerBase
         }
 
         var autorDto = mapper.Map<AutorConLibrosDTO>(autor);
+        GenerarEnlacesHATEOAS(autorDto);
         return autorDto;
     }
 
-    [HttpGet("filtrar")]
+    private void GenerarEnlacesHATEOAS(AutorDTO autor)
+    {
+        autor.Enlaces.Add(new DatosHATEOASDTO(
+            Enlace: Url.Link("ObtenerAutorV1", new { id = autor.Id })!,
+            Descripcion: "self",
+            Metodo: "GET"));
+
+        autor.Enlaces.Add(new DatosHATEOASDTO(
+                Enlace: Url.Link("ActualizarAutorV1", new { id = autor.Id })!,
+                Descripcion: "autor-actualizar",
+                Metodo: "PUT"));
+
+        autor.Enlaces.Add(new DatosHATEOASDTO(
+                Enlace: Url.Link("ActualizarAutorPatchV1", new { id = autor.Id })!,
+                Descripcion: "autor-actualizar-patch",
+                Metodo: "PATCH"));
+        autor.Enlaces.Add(new DatosHATEOASDTO(
+                Enlace: Url.Link("EliminarAutorV1", new { id = autor.Id })!,
+                Descripcion: "autor-eliminar",
+                Metodo: "DELETE"));
+
+        autor.Enlaces.Add(new DatosHATEOASDTO(
+                Enlace: Url.Link("CrearAutorConFotoV1", new { })!,
+                Descripcion: "autor-crear-con-foto",
+                Metodo: "POST"));
+
+
+    }
+
+    [HttpGet("filtrar", Name = "FiltrarAutoresV1")] // api/autores/filtrar
     [AllowAnonymous]
     public async Task<ActionResult> Filtrar([FromQuery] AutorFiltroDTO autorFiltroDTO)
     {
@@ -170,7 +200,7 @@ public class AutoresController : ControllerBase
 
     }
 
-    [HttpPost]
+    [HttpPost (Name = "CrearAutorV1")]
     public async Task<ActionResult> Post(AutorCreacionDTO autorCreacionDTO)
     {
         var autor = mapper.Map<Autor>(autorCreacionDTO);
@@ -180,7 +210,7 @@ public class AutoresController : ControllerBase
         var autorDto = mapper.Map<AutorDTO>(autor);
         return CreatedAtRoute("ObtenerAutorV1", new { id = autor.Id }, autorDto);
     }
-    [HttpPost("con-foto")]
+    [HttpPost("con-foto", Name = "CrearAutorConFotoV1")]
     public async Task<ActionResult> PostConFoto([FromForm] AutorCreactionDTOConFoto autorCreacionDTO)
     {
         var autor = mapper.Map<Autor>(autorCreacionDTO);
@@ -199,7 +229,7 @@ public class AutoresController : ControllerBase
         return CreatedAtRoute("ObtenerAutorV1", new { id = autor.Id }, autorDto);
     }
 
-    [HttpPut("{id:int}")] // api/autores/id 
+    [HttpPut("{id:int}", Name = "ActualizarAutorV1")] // api/autores/id 
     public async Task<ActionResult> Put(int id, [FromForm] AutorCreactionDTOConFoto autorCreacionDTO)
     {
 
@@ -231,7 +261,7 @@ public class AutoresController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id:int}")]
+    [HttpPatch("{id:int}", Name = "ActualizarAutorPatchV1")] // api/autores/id
     public async Task<ActionResult> Patch(int id, JsonPatchDocument<AutorPatchDTO> patchDoc)
     {
         if (patchDoc is null)
@@ -262,7 +292,7 @@ public class AutoresController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:int}", Name = "EliminarAutorV1")]
     public async Task<ActionResult> Delete(int id)
     {
         var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);

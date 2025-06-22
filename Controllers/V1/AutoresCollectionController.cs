@@ -55,7 +55,7 @@ public class AutoresCollectionController : ControllerBase
         return Ok(autoresDto);
     }
 
-    [HttpPost]
+    [HttpPost (Name = "CrearAutoresV1")]
     public async Task<ActionResult> Post(IEnumerable<AutorCreacionDTO> autoresCreacionDTOs)
     {
         var autores = mapper.Map<IEnumerable<Autor>>(autoresCreacionDTOs);

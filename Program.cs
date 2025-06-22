@@ -2,6 +2,7 @@ using System.Text;
 using BibliotecaAPI.Datos;
 using BibliotecaAPI.Entidades;
 using BibliotecaAPI.Servicios;
+using BibliotecaAPI.Swagger;
 using BibliotecaAPI.Utilidades;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
@@ -46,6 +47,7 @@ builder.Services.AddAutoMapper(typeof(Program)); // Configurar automapper
 builder.Services.AddControllers( opciones =>
 {
     opciones.Filters.Add<FiltroTiempoEjecucion>(); // Filtro de tiempo de ejecucion
+    opciones.Conventions.Add(new ConvencionAgrupaPorVersion());
     
 }).AddNewtonsoftJson(); // Habilita el uso de controladores
 
@@ -101,6 +103,17 @@ builder.Services.AddSwaggerGen( opciones =>
             Url = new Uri("https://opensource.org/licenses/MIT")
         }
     });
+    opciones.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Title = "Biblioteca API",
+        Description = "Este es un web API para trabajar con datos de autores y libros",
+        Version = "v2",
+        License = new OpenApiLicense
+        {
+            Name = "MIT",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
 
     opciones.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -150,7 +163,12 @@ app.UseExceptionHandler(excepcionHandleApp => excepcionHandleApp.Run(async conte
 
 
 app.UseSwagger(); // Servi documento de swagger
-app.UseSwaggerUI(); // Interfaz de usuario para el documento de swagger
+app.UseSwaggerUI( opciones =>
+{
+    opciones.SwaggerEndpoint("/swagger/v1/swagger.json", "Biblioteca API v1");
+    opciones.SwaggerEndpoint("/swagger/v2/swagger.json", "Biblioteca API v2");
+ // Habilita la interfaz de usuario de swagger en la raiz del proyecto
+}); // Interfaz de usuario para el documento de swagger
 
 app.UseStaticFiles(); // Habilita el uso de archivos estaticos
 

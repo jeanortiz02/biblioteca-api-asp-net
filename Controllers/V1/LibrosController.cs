@@ -35,7 +35,7 @@ public class LibrosController : ControllerBase
     }
 
 
-    [HttpGet]
+    [HttpGet (Name = "ObtenerLibrosV1")]
     [AllowAnonymous]
     [OutputCache]
     public async Task<IEnumerable<LibroDTO>> Get([FromQuery] PaginationDTO paginationDTO)
@@ -71,7 +71,7 @@ public class LibrosController : ControllerBase
         return libroDTO;
     }
 
-    [HttpPost]
+    [HttpPost (Name = "CrearLibroV1")]
     [ServiceFilter<FiltroValidacionLibro>()]
     public async Task<ActionResult> Post(LibroCreactionDTO libroCreactionDTO)
     {
@@ -116,7 +116,7 @@ public class LibrosController : ControllerBase
         }
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}", Name = "ActualizarLibroV1")] // api/libros/id
     [ServiceFilter<FiltroValidacionLibro>()]
     public async Task<ActionResult> Put(int id, LibroCreactionDTO libroCreactionDTO)
     {
@@ -156,7 +156,7 @@ public class LibrosController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:int}", Name = "EliminarLibroV1")]
     public async Task<ActionResult> Delete(int id)
     {
         var registroBorrados = await context.Autores.Where(x => x.Id == id).ExecuteDeleteAsync();
