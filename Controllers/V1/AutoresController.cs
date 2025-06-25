@@ -13,13 +13,13 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.OutputCaching;
 using BibliotecaAPI.Servicios.V1;
+using BibliotecaAPI.Utilidades.V1;
 
 namespace BibliotecaAPI.Controllers.V1;
 
 [ApiController]
 [Route("api/v1/autores")]
 [Authorize(Policy = "esadmin")]
-[FiltroAgregarCabeceras("controlador", "autores")]
 public class AutoresController : ControllerBase
 {
     private readonly AplicationDbContext context;
@@ -37,7 +37,7 @@ public class AutoresController : ControllerBase
         IAlmacenadorArchivos almacenadorArchivos,
         ILogger<AutoresController> logger,
         IOutputCacheStore outputCacheStore,
-        IServicioAutores servicioAutoresV1 
+        IServicioAutores servicioAutoresV1
         )
     {
         this.context = context;
@@ -50,14 +50,44 @@ public class AutoresController : ControllerBase
 
 
     // [HttpGet("/listado-de-autores")] // Ruta personalizada independiente
-    [HttpGet (Name = "ObtenerAutoresV1")] // api/autores
+    [HttpGet(Name = "ObtenerAutoresV1")] // api/autores
     [AllowAnonymous]
     // [OutputCache(Tags = [cache])]
-    [ServiceFilter<MiFiltroDeAccion>()]
-    [FiltroAgregarCabeceras("accion", "obtener-autores")]
-    public async Task<IEnumerable<AutorDTO>> Get([FromQuery] PaginationDTO paginationDTO)
+    public async Task<ActionResult> Get([FromQuery] PaginationDTO paginationDTO, [FromQuery] bool incluirHateoas = false)
     {
-        return await servicioAutoresV1.Get(paginationDTO);
+        var dtos = await servicioAutoresV1.Get(paginationDTO);
+
+        if (incluirHateoas == true)
+        {
+            foreach (var dto in dtos)
+            {
+                GenerarEnlacesHATEOAS(dto);
+            }
+
+            var resultado = new ColeccionDeRecursosDTO<AutorDTO> { Valores = dtos };
+            resultado.Enlaces.Add(new DatosHATEOASDTO(
+               Enlace: Url.Link("ObtenerAutoresV1", new { })!,
+               Descripcion: "self",
+               Metodo: "GET"
+            ));
+
+            resultado.Enlaces.Add(new DatosHATEOASDTO(
+               Enlace: Url.Link("CrearAutorV1", new { })!,
+               Descripcion: "autor-crear",
+               Metodo: "POST"
+            ));
+
+            resultado.Enlaces.Add(new DatosHATEOASDTO(
+                  Enlace: Url.Link("CrearAutorConFotoV1", new { })!,
+                  Descripcion: "autor-con-foto",
+                  Metodo: "POST"
+            ));
+
+            return Ok (resultado);
+
+        }
+
+        return Ok (dtos);
     }
 
     [HttpGet("{id:int}", Name = "ObtenerAutorV1")] // api/autores/id
@@ -67,6 +97,7 @@ public class AutoresController : ControllerBase
     [ProducesResponseType<AutorConLibrosDTO>(StatusCodes.Status200OK)]
     [ProducesResponseType<AutorConLibrosDTO>(StatusCodes.Status404NotFound)]
     // [OutputCache (Tags = [cache])]
+    [ServiceFilter<HATEOASAutorAttribute>()]
     public async Task<ActionResult<AutorConLibrosDTO>> Get([Description("Id del autor")] int id)
     {
         var autor = await context.Autores
@@ -80,7 +111,6 @@ public class AutoresController : ControllerBase
         }
 
         var autorDto = mapper.Map<AutorConLibrosDTO>(autor);
-        GenerarEnlacesHATEOAS(autorDto);
         return autorDto;
     }
 
@@ -200,7 +230,7 @@ public class AutoresController : ControllerBase
 
     }
 
-    [HttpPost (Name = "CrearAutorV1")]
+    [HttpPost(Name = "CrearAutorV1")]
     public async Task<ActionResult> Post(AutorCreacionDTO autorCreacionDTO)
     {
         var autor = mapper.Map<Autor>(autorCreacionDTO);

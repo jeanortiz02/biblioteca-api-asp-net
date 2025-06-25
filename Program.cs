@@ -4,6 +4,7 @@ using BibliotecaAPI.Entidades;
 using BibliotecaAPI.Servicios;
 using BibliotecaAPI.Swagger;
 using BibliotecaAPI.Utilidades;
+using BibliotecaAPI.Utilidades.V1;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,15 +15,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Area services
 
-// builder.Services.AddOutputCache(opciones =>
-// {
-//     opciones.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(15);
-// }); // Habilita la cache
-
-builder.Services.AddStackExchangeRedisOutputCache(optiones =>
+builder.Services.AddOutputCache(opciones =>
 {
-    optiones.Configuration = builder.Configuration.GetConnectionString("redis")!;
-});
+    opciones.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(15);
+}); // Habilita la cache
+
+// builder.Services.AddStackExchangeRedisOutputCache(optiones =>
+// {
+//     optiones.Configuration = builder.Configuration.GetConnectionString("redis")!;
+// });
 
 
 builder.Services.AddDataProtection(); // Habilita la proteccion de datos
@@ -46,7 +47,6 @@ builder.Services.AddAutoMapper(typeof(Program)); // Configurar automapper
 
 builder.Services.AddControllers( opciones =>
 {
-    opciones.Filters.Add<FiltroTiempoEjecucion>(); // Filtro de tiempo de ejecucion
     opciones.Conventions.Add(new ConvencionAgrupaPorVersion());
     
 }).AddNewtonsoftJson(); // Habilita el uso de controladores
@@ -62,10 +62,11 @@ builder.Services.AddScoped<UserManager<Usuario>>();
 builder.Services.AddScoped<SignInManager<Usuario>>();
 builder.Services.AddTransient<IServiciosUsuarios, ServiciosUsuarios>();
 builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosAzure>();
-builder.Services.AddScoped<MiFiltroDeAccion>();
 builder.Services.AddScoped<FiltroValidacionLibro>();
 builder.Services.AddScoped<BibliotecaAPI.Servicios.V1.IServicioAutores, BibliotecaAPI.Servicios.V1.ServicioAutores>();
+builder.Services.AddScoped<BibliotecaAPI.Servicios.V1.IGeneradorEnlaces, BibliotecaAPI.Servicios.V1.GeneradorEnlaces>();
 
+builder.Services.AddScoped<HATEOASAutorAttribute>();
 
 builder.Services.AddHttpContextAccessor();
 
